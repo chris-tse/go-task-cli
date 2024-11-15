@@ -1,26 +1,17 @@
-package db
+package task
 
 import (
 	"encoding/json"
 	"fmt"
+	io "go-task-cli/io"
 	"os"
 )
-
-type Status string
 
 const (
 	StatusTodo       Status = "todo"
 	StatusInProgress Status = "in-progress"
 	StatusDone       Status = "done"
 )
-
-type Task struct {
-	ID          int    `json:"id"`
-	Description string `json:"description"`
-	Status      Status `json:"status"`
-	CreatedAt   string `json:"createdAt"`
-	UpdatedAt   string `json:"updatedAt"`
-}
 
 func createNewTaskDB(filename string) ([]Task, error) {
 	tasks := []Task{}
@@ -41,19 +32,7 @@ func createNewTaskDB(filename string) ([]Task, error) {
 	return tasks, nil
 }
 
-func parseTaskDB(data []byte) ([]Task, error) {
-	var tasks []Task
-	err := json.Unmarshal(data, &tasks)
-
-	// some error with parsing JSON
-	if err != nil {
-		return nil, err
-	}
-
-	return tasks, nil
-}
-
-func LoadTasks(filename string) ([]Task, error) {
+func Read(filename string) ([]Task, error) {
 	data, err := os.ReadFile(filename)
 
 	// If "file not exists error" occurs, create a new tasks db file
@@ -67,30 +46,34 @@ func LoadTasks(filename string) ([]Task, error) {
 	}
 
 	// File found, parse JSON into array
-	return parseTaskDB(data)
+	return io.ParseJSONFile[Task](data)
+}
+
+func WriteTasks(filename string, tasks []Task) error {
+	data, err := json.Marshal(tasks)
+
+	if err != nil {
+		return err
+	}
+
+	return io.WriteToFile(filename, data)
 }
 
 func TestLoadOrCreateDB() {
 	fmt.Println("testing load or create db")
 }
 
-func AddTask(description string) {
-	tasks, err := LoadTasks("tasks.json")
+func Add(description string, taskList []Task) {
 
-	if err != nil {
-		fmt.Println("Error loading tasks.json:", err)
-		os.Exit(1)
-	}
-
-	tasks = append(tasks, Task{
-		ID:          len(tasks) + 1,
+	taskList = append(taskList, Task{
+		ID:          len(taskList) + 1,
 		Description: description,
 		Status:      StatusTodo,
 		CreatedAt:   "2024-11-10",
 		UpdatedAt:   "2024-11-10",
 	})
 
-	data, err := json.Marshal(tasks)
+	data, err := json.Marshal(taskList)
 
 	if err != nil {
 		fmt.Println("Error marshalling tasks:", err)
