@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  dev:
+    build: .
+    volumes:
+      # Source code
+      - ./:/home/developer/go-task-cli/src
+      # Config files
+      - ~/.config/nvim:/home/developer/.config/nvim
+      - ~/.config/zellij:/home/developer/.config/zellij
+      - ~/.zshrc:/home/developer/.zshrc
+      - ~/.config/starship.toml:/home/developer/.config/starship.toml
+      # Go path for cached modules
+      - go-modules:/go/pkg/mod
+    environment:
+      - TERM=xterm-256color
+    # Keep container running
+    tty: true
+    # For better terminal handling
+    stdin_open: true
+
+volumes:
+  go-modules:
